@@ -3,391 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>11th Journey - Home</title>
-    <!-- Phosphor Icons (Premium App Icons) -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+    <title>Typing Masterpiece Pro 🔥</title>
     <style>
-        /* एकदम प्रीमियम डार्क थीम (Android Lover Style) */
-        :root {
-            --bg-color: #0f172a; /* गहरा नीला/काला */
-            --surface-color: #1e293b;
-            --primary-color: #6366f1; /* मस्त वाला पर्पल/ब्लू */
-            --accent-color: #10b981; /* सक्सेस ग्रीन */
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-        }
-
+        /* एकदम झक्कास डार्क थीम और एनिमेशन */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent; /* क्लिक करने पर नीला डब्बा ना बने */
+            user-select: none; /* टेक्स्ट सेलेक्ट ना हो */
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow-x: hidden;
-            padding-bottom: 80px; /* Bottom Nav के लिए जगह */
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* ऐप जैसा हेडर */
+        /* फोन सीधा होने पर यह वार्निंग दिखेगी */
+        #rotate-warning {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: #e63946;
+            color: white;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1000;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+        }
+
+        /* सिर्फ Portrait (सीधे) मोड में वार्निंग दिखाओ */
+        @media screen and (orientation: portrait) {
+            #rotate-warning { display: flex; }
+            #game-container { display: none !important; }
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            background: radial-gradient(circle at center, #161b22 0%, #0d1117 100%);
+        }
+
+        /* टॉप बार (स्कोर और टाइमर) */
         .header {
             display: flex;
             justify-content: space-between;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+
+        .text-cyan { color: #00f0ff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        .text-green { color: #39ff14; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
+
+        /* जहाँ शब्द दिखेंगे */
+        .word-display-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
+        }
+
+        #word-display {
+            font-size: 60px;
+            font-weight: 900;
+            letter-spacing: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px 40px;
+            border-radius: 20px;
+            border: 2px solid #30363d;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* अक्षरों के रंग */
+        .char { color: #8b949e; transition: all 0.1s; } /* नार्मल रंग */
+        .char.correct { color: #39ff14; text-shadow: 0 0 15px #39ff14; transform: scale(1.1); display: inline-block; } /* सही होने पर हरा */
+        .char.wrong { color: #ff003c; text-shadow: 0 0 15px #ff003c; border-bottom: 4px solid #ff003c; } /* गलत पर लाल */
+        .char.active { border-bottom: 4px solid #00f0ff; color: white; } /* जो अक्षर अभी टाइप करना है */
+
+        /* वर्चुअल कीबोर्ड (सीखने के लिए) */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .row { display: flex; gap: 8px; }
+
+        .key {
+            background: #21262d;
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            min-width: 40px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #c9d1d9;
+            box-shadow: 0 4px 0 #0d1117;
+            transition: all 0.1s;
+        }
+
+        /* होम रो (F और J) को अलग दिखाना */
+        #key-f, #key-j { border-bottom: 3px solid #fca311; }
+
+        /* जब बटन दबाएं तो एनिमेशन */
+        .key.pressed {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #0d1117;
+            background: #30363d;
+        }
+
+        /* जो बटन दबाना है वो चमकेगा (Hint) */
+        .key.hint {
+            border-color: #00f0ff;
+            background: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 15px #00f0ff, 0 4px 0 #0d1117;
+            color: white;
+        }
+
+        .space-bar { width: 300px; }
+
+        /* स्टार्ट स्क्रीन */
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 17, 23, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             z-index: 100;
         }
 
-        .user-info h1 {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(to right, #6366f1, #a855f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .user-info p {
-            font-size: 13px;
-            color: var(--text-dim);
-            margin-top: 2px;
-        }
-
-        .notification-bell {
-            position: relative;
-            background: var(--surface-color);
-            padding: 10px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: pulse 2s infinite;
-        }
-        .notification-dot {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 10px;
-            height: 10px;
-            background: #ef4444;
-            border-radius: 50%;
-            border: 2px solid var(--surface-color);
-        }
-
-        /* हीरो बैनर (Live Class / Motivation) */
-        .hero-banner {
-            margin: 10px 20px 25px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 20px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-        }
-        .hero-banner::after {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 150px;
-            height: 150px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-        .hero-banner h2 { font-size: 20px; margin-bottom: 5px; }
-        .hero-banner p { font-size: 14px; opacity: 0.9; margin-bottom: 15px; }
-        .hero-btn {
-            background: white;
-            color: var(--primary-color);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
+        button {
+            padding: 15px 40px;
+            font-size: 24px;
             font-weight: bold;
-            font-size: 13px;
+            background: linear-gradient(45deg, #00f0ff, #0080ff);
+            color: white;
+            border: none;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+            margin-top: 20px;
             transition: transform 0.2s;
         }
-        .hero-btn:active { transform: scale(0.95); }
-
-        /* मुख्य मेनू (Notes, PDF, Quiz Grid) */
-        .section-title {
-            margin: 0 20px 15px;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .grid-menu {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            padding: 0 20px;
-            margin-bottom: 30px;
-        }
-
-        .menu-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .menu-item:active { transform: scale(0.90); }
-        
-        .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        /* अलग-अलग कलर के बॉक्स */
-        .menu-item:nth-child(1) .icon-box { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .menu-item:nth-child(2) .icon-box { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .menu-item:nth-child(3) .icon-box { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-        .menu-item:nth-child(4) .icon-box { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-
-        .menu-item span { font-size: 12px; font-weight: 500; color: var(--text-dim); text-align: center; }
-
-        /* स्क्रोल होने वाले कार्ड्स (Continue Studying) */
-        .scroll-container {
-            display: flex;
-            overflow-x: auto;
-            padding: 0 20px 20px;
-            gap: 15px;
-            scrollbar-width: none; /* Firefox */
-        }
-        .scroll-container::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
-
-        .study-card {
-            min-width: 240px;
-            background: var(--surface-color);
-            border-radius: 16px;
-            padding: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .study-card h3 { font-size: 16px; margin-bottom: 5px; }
-        .study-card p { font-size: 12px; color: var(--text-dim); }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--accent-color);
-            border-radius: 3px;
-        }
-
-        /* नीचे का नैविगेशन बार (Bottom Nav) */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 10px 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            z-index: 1000;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-dim);
-            font-size: 11px;
-            cursor: pointer;
-        }
-        .nav-item.active {
-            color: var(--primary-color);
-        }
-        .nav-item i { font-size: 24px; }
-
-        /* एनिमेशन */
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        /* Toast Message (Pop-up) */
-        #toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 10px;
-            padding: 16px;
-            position: fixed;
-            z-index: 2000;
-            left: 50%;
-            bottom: 90px;
-            transform: translateX(-50%);
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: visibility 0.5s, opacity 0.5s linear;
-            opacity: 0;
-        }
-        #toast.show { visibility: visible; opacity: 1; }
+        button:active { transform: scale(0.95); }
 
     </style>
 </head>
 <body>
 
-    <!-- Header Section -->
-    <header class="header">
-        <div class="user-info">
-            <h1 id="greeting">नमस्ते, टॉपर! 🚀</h1>
-            <p>आज का लक्ष्य: 100 XP हासिल करना</p>
-        </div>
-        <div class="notification-bell" onclick="showToast('कोई नया नोटिफिकेशन नहीं है!')">
-            <i class="ph-fill ph-bell" style="font-size: 22px; color: white;"></i>
-            <div class="notification-dot"></div>
-        </div>
-    </header>
-
-    <!-- Hero Banner (Live Class) -->
-    <div class="hero-banner">
-        <h2>Physics: Laws of Motion ⚛️</h2>
-        <p>Live Class begins in 15 mins. Get ready!</p>
-        <button class="hero-btn" onclick="showToast('लाइव क्लास जल्दी ही शुरू होगी!')">Join Class Now</button>
+    <!-- वार्निंग: अगर मोबाइल सीधा है -->
+    <div id="rotate-warning">
+        <h1>📱 🔄</h1>
+        <p>भाई! गेम का असली मजा फुल स्क्रीन में है।</p>
+        <p>कृपया अपने मोबाइल को टेढ़ा (Landscape) कर लो!</p>
+        <p style="font-size: 16px; margin-top: 10px;">(Auto-Rotate ऑन करना मत भूलना)</p>
     </div>
 
-    <!-- Main Categories (PW Style) -->
-    <h3 class="section-title">स्टडी मटेरियल 📚</h3>
-    <div class="grid-menu">
-        <div class="menu-item" onclick="showToast('Notes Section खुल रहा है...')">
-            <div class="icon-box"><i class="ph-fill ph-notebook"></i></div>
-            <span>Notes</span>
-        </div>
-        <div class="menu-item" onclick="showToast('PDF Books लोड हो रही हैं...')">
-            <div class="icon-box"><i class="ph-fill ph-file-pdf"></i></div>
-            <span>PDFs</span>
-        </div>
-        <div class="menu-item" onclick="showToast('Quiz Time! तैयार हो जाओ...')">
-            <div class="icon-box"><i class="ph-fill ph-timer"></i></div>
-            <span>Quiz</span>
-        </div>
-        <div class="menu-item" onclick="showToast('Mock Test में आपका स्वागत है!')">
-            <div class="icon-box"><i class="ph-fill ph-target"></i></div>
-            <span>Test Series</span>
-        </div>
+    <!-- स्टार्ट स्क्रीन -->
+    <div id="start-screen">
+        <h1 style="font-size: 50px; margin-bottom: 10px; color: white;">Typing <span class="text-cyan">Masterpiece</span> ⌨️</h1>
+        <p style="font-size: 20px; color: #8b949e; margin-bottom: 30px;">बिना मोबाइल कीबोर्ड खुले, असली प्रैक्टिस! 🔥</p>
+        <p>👉 अपनी उंगलियों को <strong>A S D F</strong> और <strong>J K L ;</strong> पर रखो।</p>
+        <button onclick="startGame()">▶️ गेम शुरू करें</button>
     </div>
 
-    <!-- Continue Learning Section -->
-    <h3 class="section-title">अधूरी पढ़ाई पूरी करें 🏃‍♂️</h3>
-    <div class="scroll-container">
-        <!-- Card 1 -->
-        <div class="study-card">
-            <div style="display: flex; justify-content: space-between;">
-                <i class="ph-fill ph-math-operations" style="font-size: 24px; color: #3b82f6;"></i>
-                <span style="font-size: 12px; color: #10b981;">60% Done</span>
-            </div>
-            <div>
-                <h3>Maths: Sets & Relations</h3>
-                <p>Lecture 02 • 45 mins left</p>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 60%;"></div>
+    <!-- मेन गेम -->
+    <div id="game-container" style="display: none;">
+        <div class="header">
+            <div>स्कोर: <span id="score" class="text-green">0</span></div>
+            <div>समय: <span id="timer" class="text-cyan">60</span>s</div>
+        </div>
+
+        <div class="word-display-area">
+            <div id="word-display">
+                <!-- शब्द यहाँ जावास्क्रिप्ट से आएंगे -->
             </div>
         </div>
 
-        <!-- Card 2 -->
-        <div class="study-card">
-            <div style="display: flex; justify-content: space-between;">
-                <i class="ph-fill ph-flask" style="font-size: 24px; color: #ef4444;"></i>
-                <span style="font-size: 12px; color: #10b981;">25% Done</span>
+        <!-- वर्चुअल कीबोर्ड (सिर्फ मदद के लिए) -->
+        <div class="keyboard" id="keyboard">
+            <div class="row">
+                <div class="key" id="key-q">Q</div><div class="key" id="key-w">W</div><div class="key" id="key-e">E</div><div class="key" id="key-r">R</div><div class="key" id="key-t">T</div><div class="key" id="key-y">Y</div><div class="key" id="key-u">U</div><div class="key" id="key-i">I</div><div class="key" id="key-o">O</div><div class="key" id="key-p">P</div>
             </div>
-            <div>
-                <h3>Chemistry: Atomic Structure</h3>
-                <p>Notes Reading • 10 Pages left</p>
+            <div class="row">
+                <div class="key" id="key-a">A</div><div class="key" id="key-s">S</div><div class="key" id="key-d">D</div><div class="key" id="key-f">F</div><div class="key" id="key-g">G</div><div class="key" id="key-h">H</div><div class="key" id="key-j">J</div><div class="key" id="key-k">K</div><div class="key" id="key-l">L</div>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 25%;"></div>
+            <div class="row">
+                <div class="key" id="key-z">Z</div><div class="key" id="key-x">X</div><div class="key" id="key-c">C</div><div class="key" id="key-v">V</div><div class="key" id="key-b">B</div><div class="key" id="key-n">N</div><div class="key" id="key-m">M</div>
+            </div>
+            <div class="row">
+                <div class="key space-bar" id="key- ">SPACE</div>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Navigation Bar (Fixed) -->
-    <nav class="bottom-nav">
-        <div class="nav-item active">
-            <i class="ph-fill ph-house"></i>
-            <span>Home</span>
-        </div>
-        <div class="nav-item" onclick="showToast('आपके बैचेस यहाँ दिखेंगे')">
-            <i class="ph-fill ph-monitor-play"></i>
-            <span>Batches</span>
-        </div>
-        <div class="nav-item" onclick="showToast('सारे टेस्ट की लिस्ट')">
-            <i class="ph-fill ph-exam"></i>
-            <span>Tests</span>
-        </div>
-        <div class="nav-item" onclick="showToast('अपनी प्रोफाइल सेटिंग्स देखें')">
-            <i class="ph-fill ph-user-circle"></i>
-            <span>Profile</span>
-        </div>
-    </nav>
-
-    <!-- Toast Message Div -->
-    <div id="toast">Message here</div>
-
-    <!-- Javascript -->
     <script>
-        // समय के हिसाब से ग्रीटिंग देना (Good Morning/Evening)
-        function setGreeting() {
-            let hour = new Date().getHours();
-            let greetingText = document.getElementById("greeting");
+        // --- गेम का दिमाग (Brain) 🧠 ---
+
+        // शुरुआत के लिए आसान शब्द (Home Row वाले)
+        const words = [
+            "as", "df", "jk", "sad", "fall", "ask", "dad", "all", "glad", "flask", 
+            "dash", "half", "hall", "lass", "salad", "gas", "has", "ash", "flag"
+        ];
+
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let currentWord = "";
+        let charIndex = 0; // हम कौन से अक्षर पर हैं
+
+        const wordDisplay = document.getElementById("word-display");
+        const scoreElement = document.getElementById("score");
+        const timerElement = document.getElementById("timer");
+        const startScreen = document.getElementById("start-screen");
+        const gameContainer = document.getElementById("game-container");
+
+        // नया शब्द स्क्रीन पर लाना
+        function loadNewWord() {
+            // रैंडम शब्द चुनो
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            charIndex = 0;
+            wordDisplay.innerHTML = "";
+
+            // शब्द के हर अक्षर को अलग-अलग <span> में डालो ताकि रंग बदल सकें
+            for (let i = 0; i < currentWord.length; i++) {
+                const span = document.createElement("span");
+                span.innerText = currentWord[i];
+                span.classList.add("char");
+                wordDisplay.appendChild(span);
+            }
+            // पहले अक्षर के नीचे लाइन लगाओ (active)
+            updateActiveChar();
+        }
+
+        // जो अक्षर टाइप करना है, उसे और कीबोर्ड के बटन को चमकाओ ✨
+        function updateActiveChar() {
+            const spans = document.querySelectorAll(".char");
             
-            if (hour >= 5 && hour < 12) {
-                greetingText.innerText = "सुप्रभात, टॉपर! 🌅";
-            } else if (hour >= 12 && hour < 17) {
-                greetingText.innerText = "गुड आफ्टरनून! ☀️";
-            } else if (hour >= 17 && hour < 22) {
-                greetingText.innerText = "गुड इवनिंग! ☕";
-            } else {
-                greetingText.innerText = "देर रात की पढ़ाई? उल्लू 🦉";
+            // सबसे पहले सारे हिंट (चमक) हटा दो
+            document.querySelectorAll(".key").forEach(k => k.classList.remove("hint"));
+            spans.forEach(s => s.classList.remove("active"));
+
+            // अगर शब्द अभी खत्म नहीं हुआ है
+            if (charIndex < currentWord.length) {
+                spans[charIndex].classList.add("active");
+                
+                // वर्चुअल कीबोर्ड पर बटन चमकाओ
+                let charToPress = currentWord[charIndex].toLowerCase();
+                let keyDiv = document.getElementById("key-" + charToPress);
+                if(keyDiv) keyDiv.classList.add("hint");
             }
         }
 
-        // मस्त सा Pop-up (Toast) दिखाने का फंक्शन
-        function showToast(message) {
-            let toast = document.getElementById("toast");
-            toast.innerText = message;
-            toast.className = "show";
+        // गेम शुरू करने वाला फंक्शन
+        function startGame() {
+            startScreen.style.display = "none";
+            gameContainer.style.display = "flex";
             
-            // 3 सेकंड बाद गायब कर दो
-            setTimeout(function(){ 
-                toast.className = toast.className.replace("show", ""); 
-            }, 3000);
+            // फुल स्क्रीन करने की कोशिश (मोबाइल पर अच्छा लगता है)
+            try { document.documentElement.requestFullscreen(); } catch(e) {}
+
+            score = 0;
+            timeLeft = 60;
+            scoreElement.innerText = score;
+            timerElement.innerText = timeLeft;
+            
+            loadNewWord();
+
+            // टाइमर चालू करो ⏱️
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
         }
 
-        // पेज लोड होते ही ग्रीटिंग सेट करो
-        window.onload = function() {
-            setGreeting();
-        };
+        function endGame() {
+            clearInterval(timerInterval);
+            // गेम खत्म होने पर वापस स्टार्ट स्क्रीन दिखाओ
+            startScreen.style.display = "flex";
+            gameContainer.style.display = "none";
+            startScreen.innerHTML = `
+                <h1 style="font-size: 50px; color: #39ff14;">Time Up! ⏰</h1>
+                <p style="font-size: 30px; color: white; margin: 20px 0;">तुम्हारा स्कोर: <span class="text-cyan">${score}</span> 🔥</p>
+                <p style="color: #8b949e;">बहुत बढ़िया दोस्त! प्रैक्टिस करते रहो।</p>
+                <button onclick="startGame()">🔄 फिर से खेलें</button>
+            `;
+        }
+
+        // --- सबसे जादुई हिस्सा: असली कीबोर्ड को सुनना ---
+        // इसमें कोई input बॉक्स नहीं है, इसलिए फोन का कीबोर्ड कभी नहीं खुलेगा! 😎
+        
+        document.addEventListener("keydown", function(event) {
+            // अगर गेम चालू नहीं है, तो कुछ मत करो
+            if (gameContainer.style.display === "none") return;
+
+            const keyPressed = event.key.toLowerCase();
+            
+            // फालतू बटन (Shift, Tab) को इग्नोर करो
+            if (keyPressed === "shift" || keyPressed === "capslock" || keyPressed === "tab") return;
+            
+            // स्पेस बार या बैकस्पेस से स्क्रीन ऊपर-नीचे ना हो, इसके लिए:
+            if(keyPressed === " " || keyPressed === "backspace") {
+                event.preventDefault(); 
+            }
+
+            // वर्चुअल कीबोर्ड पर बटन दबने का एनिमेशन दिखाओ
+            const keyDiv = document.getElementById("key-" + keyPressed);
+            if(keyDiv) {
+                keyDiv.classList.add("pressed");
+                setTimeout(() => keyDiv.classList.remove("pressed"), 100);
+            }
+
+            const spans = document.querySelectorAll(".char");
+            const expectedChar = currentWord[charIndex].toLowerCase();
+
+            // अगर सही बटन दबाया! ✅
+            if (keyPressed === expectedChar) {
+                spans[charIndex].classList.remove("active");
+                spans[charIndex].classList.remove("wrong");
+                spans[charIndex].classList.add("correct");
+                charIndex++; // अगले अक्षर पर जाओ
+
+                // अगर पूरा शब्द सही टाइप हो गया 🎉
+                if (charIndex === currentWord.length) {
+                    score += 10; // 10 पॉइंट मिले!
+                    scoreElement.innerText = score;
+                    // थोड़ा सा रुक कर नया शब्द लाओ
+                    setTimeout(loadNewWord, 200); 
+                } else {
+                    updateActiveChar(); // अगले अक्षर को चमकाओ
+                }
+            } 
+            // अगर गलत बटन दबाया ❌
+            else {
+                // बैकस्पेस दबाया तो कुछ मत करो, इस गेम में आगे ही बढ़ना है!
+                if(keyPressed !== "backspace" && charIndex < currentWord.length) {
+                    spans[charIndex].classList.add("wrong");
+                }
+            }
+        });
+
     </script>
 </body>
 </html>
