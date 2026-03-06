@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 Zombie Word Attack 🥰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka One', cursive;
+            margin: 0;
+            overflow: hidden;
+            background: #0f172a; /* Dark night background */
+            color: white;
+            touch-action: none;
+            user-select: none;
+            outline: none;
+        }
+
+        /* Game Board */
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at bottom, #1e293b 0%, #020617 100%);
+        }
+
+        /* Player Base at bottom */
+        #player-base {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to top, #064e3b, transparent);
+            border-top: 2px dashed #10b981;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            z-index: 10;
+        }
+
+        .turret {
+            font-size: 3rem;
+            filter: drop-shadow(0 0 10px #34d399);
+            transition: transform 0.1s;
+        }
+
+        /* Zombie Words */
+        .zombie-word {
+            position: absolute;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            padding: 8px 15px;
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid #ef4444;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+            display: flex;
+            transform: translateX(-50%); /* Center origin */
+            transition: top 0.1s linear, box-shadow 0.2s;
+            z-index: 5;
+        }
+
+        /* Letters inside the word */
+        .letter {
+            color: #fca5a5; /* Untyped */
+            text-shadow: 0 0 5px #ef4444;
+        }
+
+        .letter.typed {
+            color: #4ade80; /* Typed (Green) */
+            text-shadow: 0 0 8px #22c55e;
+            transform: scale(1.1);
+        }
+
+        /* Targeted word glow */
+        .zombie-word.targeted {
+            background: rgba(234, 179, 8, 0.2);
+            border-color: #eab308;
+            box-shadow: 0 0 25px rgba(234, 179, 8, 0.8);
+            transform: translateX(-50%) scale(1.1);
+            z-index: 6;
+        }
+
+        /* Stats HUD */
+        .hud-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155;
+            backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .stat-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.5rem;
+            color: #38bdf8;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+        }
+
+        /* Animations */
+        @keyframes screenShake {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-10px, 5px); }
+            40% { transform: translate(10px, -5px); }
+            60% { transform: translate(-10px, -5px); }
+            80% { transform: translate(10px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+        .shake { animation: screenShake 0.3s; }
+
+        .laser {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            width: 4px;
+            background: #4ade80;
+            box-shadow: 0 0 15px #22c55e, 0 0 30px #4ade80;
+            transform-origin: bottom center;
+            z-index: 4;
+            opacity: 0.8;
+            pointer-events: none;
+            transition: all 0.05s;
+        }
+
+    </style>
+</head>
+<body tabindex="0"> <!-- Keeps focus on body, prevents mobile keyboard -->
+
+    <!-- Main Game Area -->
+    <div id="game-area">
+        
+        <!-- Top HUD (Stats) -->
+        <div class="absolute top-4 left-4 right-4 flex justify-between z-50">
+            <div class="hud-box">
+                <span class="text-gray-400 text-sm">स्पीड (WPM) 🚀</span>
+                <span id="wpm-display" class="stat-value text-green-400">0</span>
+            </div>
+            
+            <div class="hud-box">
+                <span class="text-gray-400 text-sm">स्कोर 🏆</span>
+                <span id="score-display" class="stat-value text-yellow-400 text-3xl">0</span>
+            </div>
+
+            <div class="hud-box">
+                <span class="text-gray-400 text-sm">सटीकता (Accuracy) 🎯</span>
+                <span id="accuracy-display" class="stat-value text-cyan-400">100%</span>
+            </div>
+        </div>
+
+        <!-- Health Bar -->
+        <div class="absolute top-24 left-1/2 -translate-x-1/2 w-64 h-4 bg-gray-800 rounded-full border border-gray-600 z-50 overflow-hidden">
+            <div id="health-bar" class="h-full bg-gradient-to-r from-red-500 to-red-400 w-full transition-all duration-300"></div>
+        </div>
+
+        <!-- Words Container -->
+        <div id="words-container" class="absolute inset-0"></div>
+
+        <!-- Player Base -->
+        <div id="player-base">
+            <div id="turret" class="turret">🔫😎</div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="absolute inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center text-white backdrop-blur-md">
+            <h1 class="text-6xl mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 drop-shadow-lg text-center leading-tight">
+                🔥 ZOMBIE WORD<br>ATTACK 🧟‍♂️
+            </h1>
+            <p class="text-xl mb-8 text-center max-w-lg text-gray-300">
+                दोस्त, शब्द ऊपर से ज़ॉम्बी की तरह गिरेंगे! 😱<br>उन्हें नीचे पहुँचने से पहले जल्दी-जल्दी टाइप करके भस्म कर दो! 💥
+            </p>
+            <button id="start-btn" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-105 font-bold py-4 px-12 rounded-full text-2xl shadow-[0_6px_0_#065f46] active:translate-y-[6px] active:shadow-none transition-all">
+                खेल शुरू करें 🚀
+            </button>
+            <p class="mt-6 text-sm text-gray-500">OTG कीबोर्ड तैयार रखें ⌨️</p>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="hidden absolute inset-0 bg-red-900/90 z-[100] flex flex-col items-center justify-center text-white backdrop-blur-md">
+            <h1 class="text-7xl mb-2 text-yellow-400">GAME OVER 💀</h1>
+            <div class="bg-black/50 p-6 rounded-2xl mb-8 mt-4 text-center border border-red-500">
+                <p class="text-2xl mb-2">तुम्हारा स्कोर: <span id="final-score" class="font-bold text-green-400 text-4xl">0</span></p>
+                <p class="text-xl text-gray-300">स्पीड: <span id="final-wpm" class="text-cyan-400 font-bold">0</span> WPM</p>
+                <p class="text-xl text-gray-300">सटीकता: <span id="final-acc" class="text-yellow-400 font-bold">100</span>%</p>
+            </div>
+            <button id="restart-btn" class="bg-white text-red-600 font-bold py-3 px-10 rounded-full text-xl shadow-[0_5px_0_#ccc] active:translate-y-[5px] active:shadow-none transition-all">
+                फिर से खेलें 🔄
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 📖 WORD DICTIONARY (Words for Zombies) ---
+        const wordList = [
+            "HACK", "CODE", "BUG", "DATA", "BYTE", "VIRUS", "SYSTEM", "NINJA",
+            "PRO", "FAST", "SPEED", "HTML", "JAVA", "CSS", "GAME", "ZOMBIE",
+            "FIRE", "STAR", "MASTER", "KEY", "MOUSE", "SCREEN", "WEB", "APP",
+            "LOGIC", "MATH", "HELLO", "WORLD", "TIGER", "EAGLE", "SMART", "COOL",
+            "BRAIN", "POWER", "FLASH", "SUPER", "HERO", "MAGIC", "TRICK", "SKILL"
+        ];
+
+        // --- GAME VARIABLES ---
+        let isPlaying = false;
+        let score = 0;
+        let health = 100;
+        let activeWords = []; // Jo words screen par hain
+        let targetedWord = null; // Jis word ko player abhi type kar raha hai
+        
+        // Stats tracking
+        let startTime = 0;
+        let totalKeystrokes = 0;
+        let correctKeystrokes = 0;
+        
+        // Settings
+        let baseSpeed = 0.5;
+        let spawnRate = 2000;
+        let lastSpawnTime = 0;
+        let gameLoopId;
+
+        // --- DOM ELEMENTS ---
+        const wordsContainer = document.getElementById('words-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const wpmDisplay = document.getElementById('wpm-display');
+        const accDisplay = document.getElementById('accuracy-display');
+        const healthBar = document.getElementById('health-bar');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const gameArea = document.getElementById('game-area');
+        const turret = document.getElementById('turret');
+
+        // --- INIT GAME ---
+        function startGame() {
+            isPlaying = true;
+            score = 0;
+            health = 100;
+            activeWords = [];
+            targetedWord = null;
+            baseSpeed = 0.5;
+            spawnRate = 2000;
+            
+            totalKeystrokes = 0;
+            correctKeystrokes = 0;
+            startTime = Date.now();
+            
+            wordsContainer.innerHTML = '';
+            updateHUD();
+            healthBar.style.width = '100%';
+            
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            
+            document.body.focus(); // Keep OTG focus
+            
+            lastSpawnTime = Date.now();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- MAIN GAME LOOP ---
+        function gameLoop() {
+            if (!isPlaying) return;
+
+            const now = Date.now();
+            const deltaTime = now - lastSpawnTime;
+
+            // 1. Spawn new words
+            if (deltaTime > spawnRate) {
+                spawnWord();
+                lastSpawnTime = now;
+                
+                // Difficulty increase
+                if (spawnRate > 800) spawnRate -= 10; 
+            }
+
+            // 2. Move words down
+            for (let i = activeWords.length - 1; i >= 0; i--) {
+                let wordObj = activeWords[i];
+                wordObj.y += wordObj.speed;
+                wordObj.element.style.top = wordObj.y + 'px';
+
+                // 3. Collision with bottom (Base hit!)
+                if (wordObj.y > window.innerHeight - 100) {
+                    takeDamage(10); // Minus health
+                    
+                    // Remove word
+                    wordObj.element.remove();
+                    if (targetedWord === wordObj) targetedWord = null; // Untarget
+                    activeWords.splice(i, 1);
+                }
+            }
+
+            // 4. Update Stats (WPM & Accuracy)
+            calculateStats();
+
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- SPAWN ZOMBIE WORD ---
+        function spawnWord() {
+            const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+            
+            const wordEl = document.createElement('div');
+            wordEl.className = 'zombie-word';
+            
+            // Generate letter spans
+            wordEl.innerHTML = randomWord.split('').map(char => `<span class="letter">${char}</span>`).join('');
+            
+            // Random X position (keep away from extreme edges)
+            const minX = 100;
+            const maxX = window.innerWidth - 100;
+            const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            
+            wordEl.style.left = randomX + 'px';
+            wordEl.style.top = '-50px'; // Start above screen
+            
+            wordsContainer.appendChild(wordEl);
+            
+            activeWords.push({
+                text: randomWord,
+                element: wordEl,
+                x: randomX,
+                y: -50,
+                speed: baseSpeed + (Math.random() * 0.5), // slight variation
+                typedLength: 0 // Kitne akshar type ho gaye
+            });
+        }
+
+        // --- KEYBOARD MAGIC (TYPING MECHANICS) ---
+        window.addEventListener('keydown', (e) => {
+            document.body.focus(); // Lock focus
+            if (!isPlaying) return;
+
+            // Ignore Shift, Ctrl, Alt etc.
+            if (e.key.length > 1) return; 
+
+            const key = e.key.toUpperCase();
+            // Sirf A-Z allow karo
+            if (!/^[A-Z]$/.test(key)) return;
+
+            totalKeystrokes++; // For accuracy calculation
+
+            // CASE 1: Koi word target nahi hai
+            if (!targetedWord) {
+                // Find a word that starts with this key
+                // Find the lowest one (closest to base) if multiple match
+                let bestMatch = null;
+                let lowestY = -100;
+
+                for (let wordObj of activeWords) {
+                    if (wordObj.text[0] === key && wordObj.y > lowestY) {
+                        bestMatch = wordObj;
+                        lowestY = wordObj.y;
+                    }
+                }
+
+                if (bestMatch) {
+                    // Lock target! 🎯
+                    targetedWord = bestMatch;
+                    targetedWord.element.classList.add('targeted');
+                    processCorrectKey(key);
+                } else {
+                    processWrongKey();
+                }
+            } 
+            // CASE 2: Ek word already targeted hai
+            else {
+                const expectedKey = targetedWord.text[targetedWord.typedLength];
+                
+                if (key === expectedKey) {
+                    processCorrectKey(key);
+                } else {
+                    processWrongKey();
+                }
+            }
+        });
+
+        function processCorrectKey(key) {
+            correctKeystrokes++;
+            
+            // Shoot laser animation ⚡
+            shootLaser(targetedWord.x, targetedWord.y);
+            turret.style.transform = 'scale(1.3) translateY(-10px)';
+            setTimeout(() => turret.style.transform = 'scale(1) translateY(0)', 100);
+
+            // Update letter color to GREEN
+            const letterSpans = targetedWord.element.querySelectorAll('.letter');
+            letterSpans[targetedWord.typedLength].classList.add('typed');
+            
+            targetedWord.typedLength++;
+
+            // Kya pura word type ho gaya?
+            if (targetedWord.typedLength === targetedWord.text.length) {
+                destroyWord(targetedWord);
+            }
+            
+            calculateStats();
+        }
+
+        function processWrongKey() {
+            // Flash red, shake screen
+            gameArea.classList.add('shake');
+            setTimeout(() => gameArea.classList.remove('shake'), 300);
+            
+            if(navigator.vibrate) navigator.vibrate(50);
+            calculateStats();
+        }
+
+        function destroyWord(wordObj) {
+            // Confetti Explosion 🎉💥
+            const rect = wordObj.element.getBoundingClientRect();
+            confetti({
+                particleCount: 50,
+                spread: 70,
+                origin: { 
+                    x: (rect.left + rect.width/2) / window.innerWidth, 
+                    y: (rect.top + rect.height/2) / window.innerHeight 
+                },
+                colors: ['#4ade80', '#eab308', '#ef4444'],
+                zIndex: 100
+            });
+
+            // Remove from DOM and Array
+            wordObj.element.remove();
+            activeWords = activeWords.filter(w => w !== wordObj);
+            targetedWord = null; // Free the target
+
+            // Update Score & Speed
+            score += 10 + wordObj.text.length;
+            baseSpeed += 0.02; // Game gets slightly faster!
+            updateHUD();
+        }
+
+        // --- LASER ANIMATION ---
+        function shootLaser(targetX, targetY) {
+            const laser = document.createElement('div');
+            laser.className = 'laser';
+            
+            // Calculate height and angle from bottom center to target
+            const startX = window.innerWidth / 2;
+            const startY = window.innerHeight - 60; // Turret position
+            
+            const dx = targetX - startX;
+            const dy = startY - targetY;
+            
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            const angle = Math.atan2(dx, dy) * (180 / Math.PI); // Angle in degrees
+            
+            laser.style.height = distance + 'px';
+            laser.style.transform = `rotate(${angle}deg)`;
+            
+            document.body.appendChild(laser);
+            
+            // Remove laser quickly
+            setTimeout(() => laser.remove(), 100);
+        }
+
+        // --- DAMAGE & GAME OVER ---
+        function takeDamage(amount) {
+            health -= amount;
+            healthBar.style.width = Math.max(0, health) + '%';
+            
+            // Red flash screen
+            const flash = document.createElement('div');
+            flash.className = 'absolute inset-0 bg-red-600/30 z-40 pointer-events-none transition-opacity';
+            document.getElementById('game-area').appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+
+            gameArea.classList.add('shake');
+            setTimeout(() => gameArea.classList.remove('shake'), 300);
+
+            if (health <= 0) {
+                endGame();
+            }
+        }
+
+        // --- STATS CALCULATION ---
+        function calculateStats() {
+            if (totalKeystrokes === 0) return;
+
+            // Accuracy %
+            const acc = Math.floor((correctKeystrokes / totalKeystrokes) * 100);
+            accDisplay.textContent = acc + '%';
+            
+            // Color code accuracy
+            accDisplay.style.color = acc >= 90 ? '#4ade80' : acc >= 70 ? '#eab308' : '#ef4444';
+
+            // WPM (Words Per Minute) - Standard formula: (Correct Keystrokes / 5) / Time in Minutes
+            const timeElapsedMs = Date.now() - startTime;
+            const timeInMinutes = timeElapsedMs / 60000;
+            
+            if (timeInMinutes > 0) {
+                const wordsTyped = correctKeystrokes / 5;
+                const wpm = Math.floor(wordsTyped / timeInMinutes);
+                wpmDisplay.textContent = wpm;
+            }
+        }
+
+        function updateHUD() {
+            scoreDisplay.textContent = score;
+            scoreDisplay.style.transform = 'scale(1.2)';
+            setTimeout(() => scoreDisplay.style.transform = 'scale(1)', 150);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            cancelAnimationFrame(gameLoopId);
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-wpm').textContent = wpmDisplay.textContent;
+            document.getElementById('final-acc').textContent = accDisplay.textContent;
+            
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        // Listeners
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
+
