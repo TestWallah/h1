@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 Utsav OS - The G.O.A.T 🥰</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(20, 25, 40, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-highlight: rgba(255, 255, 255, 0.25);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            /* User's Custom Background */
+            background-image: url('https://i.ibb.co/SD2sHw66/IMG-20250511-WA0016-1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            color: white;
+        }
+
+        /* Portrait Warning overlay */
+        #portrait-warning {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        @media screen and (orientation: portrait) {
+            #portrait-warning { display: flex; }
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Desktop Icons Grid */
+        #desktop {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            align-content: start;
+            height: calc(100vh - 60px); /* Leave space for taskbar */
+        }
+
+        /* App Icon Styling */
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 10px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            text-decoration: none;
+            color: white;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+        }
+
+        .app-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-highlight);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .app-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Vector Icon Container */
+        .icon-svg {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+            transition: all 0.3s;
+        }
+        
+        .app-icon:hover .icon-svg {
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.6));
+        }
+
+        .app-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+        }
+
+        /* Taskbar */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
+        }
+
+        /* Animated Install Button */
+        .install-btn {
+            background: linear-gradient(45deg, #ff007f, #7928ca, #00d4ff);
+            background-size: 200% 200%;
+            animation: gradientMove 3s ease infinite;
+            border: 2px solid rgba(255,255,255,0.4);
+            box-shadow: 0 0 20px rgba(121, 40, 202, 0.5);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .install-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+        }
+        .install-btn:active { transform: scale(0.95); }
+
+        /* Widget Animation */
+        .widget-float {
+            animation: floatUpDown 4s ease-in-out infinite;
+        }
+
+        /* Keyframes */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* SVG Colors */
+        .svg-blue { fill: #38bdf8; }
+        .svg-green { fill: #4ade80; }
+        .svg-yellow { fill: #facc15; }
+        .svg-purple { fill: #c084fc; }
+        .svg-red { fill: #f87171; }
+        .svg-orange { fill: #fb923c; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Portrait Warning -->
+    <div id="portrait-warning">
+        <svg class="w-20 h-20 text-white mb-4 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <h1 class="text-3xl font-bold text-cyan-400 mb-2">Rotate Your Phone!</h1>
+        <p class="text-lg text-gray-300">डेस्कटॉप का असली मज़ा लैंडस्केप में है भाई! 🔄</p>
+    </div>
+
+    <!-- Desktop Area -->
+    <div id="desktop">
+        
+        <!-- App 1: Baloon Game -->
+        <a href="bln.html" target="_blank" class="app-icon" style="animation-delay: 0.1s" onclick="fireConfetti(event)">
+            <svg class="icon-svg svg-red" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C9.5 2 7.5 4.5 7.5 8C7.5 11.5 10.5 15 12 17C13.5 15 16.5 11.5 16.5 8C16.5 4.5 14.5 2 12 2ZM11.5 18H12.5L13 22H11L11.5 18Z"/>
+            </svg>
+            <span class="app-title">Baloon Game</span>
+        </a>
+
+        <!-- App 2: MK Game -->
+        <a href="cyb.html" target="_blank" class="app-icon" style="animation-delay: 0.2s" onclick="fireConfetti(event)">
+            <svg class="icon-svg svg-blue" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="2" width="14" height="20" rx="7" fill="currentColor"/>
+                <line x1="12" y1="8" x2="12" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="6" r="1" fill="white"/>
+            </svg>
+            <span class="app-title">MK Game</span>
+        </a>
+
+        <!-- App 3: KeyMAP -->
+        <a href="info.html" target="_blank" class="app-icon" style="animation-delay: 0.3s" onclick="fireConfetti(event)">
+            <svg class="icon-svg svg-yellow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="6" width="20" height="12" rx="2" fill="currentColor"/>
+                <rect x="4" y="8" width="2" height="2" fill="black" opacity="0.5" rx="0.5"/>
+                <rect x="8" y="8" width="2" height="2" fill="black" opacity="0.5" rx="0.5"/>
+                <rect x="12" y="8" width="2" height="2" fill="black" opacity="0.5" rx="0.5"/>
+                <rect x="16" y="8" width="2" height="2" fill="black" opacity="0.5" rx="0.5"/>
+                <rect x="6" y="12" width="12" height="2" fill="black" opacity="0.5" rx="0.5"/>
+            </svg>
+            <span class="app-title">KeyMAP</span>
+        </a>
+
+        <!-- App 4: Passage -->
+        <a href="para.html" target="_blank" class="app-icon" style="animation-delay: 0.4s" onclick="fireConfetti(event)">
+            <svg class="icon-svg svg-purple" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 2C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V4C20 2.89543 19.1046 2 18 2H6ZM8 6H16V8H8V6ZM8 10H16V12H8V10ZM8 14H13V16H8V14Z" fill="currentColor"/>
+            </svg>
+            <span class="app-title">Passage</span>
+        </a>
+
+        <!-- App 5: Words Type -->
+        <a href="type.html" target="_blank" class="app-icon" style="animation-delay: 0.5s" onclick="fireConfetti(event)">
+            <svg class="icon-svg svg-orange" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor"/>
+                <text x="12" y="17" font-size="14" font-weight="bold" fill="white" text-anchor="middle" font-family="sans-serif">T</text>
+            </svg>
+            <span class="app-title">Words Type</span>
+        </a>
+
+        <!-- App 6: ZomGame -->
+        <a href="zom.html" target="_blank" class="app-icon" style="animation-delay: 0.6s" onclick="fireConfetti(event)">
+            <svg class="icon-svg svg-green" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13401 2 5 5.13401 5 9V19.5C5 20.8807 6.11929 22 7.5 22C8.1611 22 8.76269 21.7431 9.20711 21.3197L10.3803 20.1464C11.2589 19.2678 12.6834 19.2678 13.562 20.1464L14.7353 21.3197C15.1797 21.7431 15.7813 22 16.4424 22C17.8231 22 18.9424 20.8807 18.9424 19.5V9C18.9424 5.13401 15.8084 2 11.9424 2H12ZM9 8C9.55228 8 10 8.44772 10 9C10 9.55228 9.55228 10 9 10C8.44772 10 8 9.55228 8 9C8 8.44772 8.44772 8 9 8ZM15 8C15.5523 8 16 8.44772 16 9C16 9.55228 15.5523 10 15 10C14.4477 10 14 9.55228 14 9C14 8.44772 14.4477 8 15 8ZM10.5 14H13.5V16H10.5V14Z" fill="currentColor"/>
+            </svg>
+            <span class="app-title">ZomGame</span>
+        </a>
+
+    </div>
+
+    <!-- About Me Widget (Floating on Desktop) -->
+    <div class="absolute top-10 right-10 glass-panel rounded-2xl p-6 widget-float border-t border-l border-white/30 shadow-2xl max-w-sm" style="animation-delay: 1s;">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl">👑</span>
+            <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 drop-shadow-sm">About Me</h2>
+        </div>
+        <p class="text-xl font-bold text-white mb-2 leading-tight">Utsav Mere Bhai, <br><span class="text-cyan-400">Lucch Bhai</span></p>
+        <div class="h-px w-full bg-white/20 my-3"></div>
+        <p class="text-sm font-semibold text-gray-300 italic tracking-wide">
+            Fast Loading UI Best w🔥🔥🔥<br>
+            <span class="text-lg text-emerald-400 font-black not-italic drop-shadow-md">Wtf G.O.A.T. 🐐</span>
+        </p>
+    </div>
+
+    <!-- Taskbar -->
+    <div id="taskbar" class="glass-panel">
+        
+        <!-- Start / Logo Area -->
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.6)] cursor-pointer hover:rotate-180 transition-all duration-500" onclick="hugeConfetti()">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <span class="font-bold text-lg tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">UTSAV OS</span>
+        </div>
+
+        <!-- System Tray -->
+        <div class="flex items-center gap-6">
+            
+            <!-- Install App Button (PWA) -->
+            <button id="install-btn" class="install-btn hidden" onclick="installPWA()">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Install App
+            </button>
+
+            <!-- Clock -->
+            <div id="clock" class="text-sm font-mono font-bold bg-black/40 px-4 py-2 rounded-lg border border-white/10 shadow-inner">
+                00:00 AM
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 🕰️ LIVE CLOCK ---
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            document.getElementById('clock').textContent = hours + ':' + minutes + ' ' + ampm;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 🎉 CONFETTI MAGIC ---
+        function fireConfetti(event) {
+            // Get click coordinates
+            const x = event.clientX / window.innerWidth;
+            const y = event.clientY / window.innerHeight;
+
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { x: x, y: y },
+                colors: ['#38bdf8', '#4ade80', '#facc15', '#f87171', '#c084fc']
+            });
+        }
+
+        // Start Button Huge Explosion
+        function hugeConfetti() {
+            var duration = 2 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // --- 📲 PWA INSTALL LOGIC ---
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+
+        // Capture the install prompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to notify the user they can add to home screen
+            installBtn.classList.remove('hidden');
+        });
+
+        function installPWA() {
+            // Fireworks for clicking install
+            hugeConfetti();
+            
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                    installBtn.classList.add('hidden');
+                });
+            } else {
+                // If already installed or browser doesn't support it, just show an alert with style
+                alert("🎉 ऐप इंस्टालेशन रेडी है! (अगर प्रॉम्प्ट ना आये तो ब्राउज़र के 'Add to Home Screen' ऑप्शन का इस्तेमाल करें)");
+            }
+        }
+
+        // Add a nice intro animation on load
+        window.onload = () => {
+            setTimeout(() => {
+                confetti({
+                    particleCount: 100,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+            }, 500);
+        };
+    </script>
+</body>
+</html>
+
