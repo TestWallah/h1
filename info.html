@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 Keyboard Master Guide 🥰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Baloo 2', cursive;
+            margin: 0;
+            overflow: hidden;
+            background: #0f172a; /* Dark sleek background */
+            color: white;
+            touch-action: none;
+            outline: none;
+        }
+
+        /* Glowing Key Display */
+        .key-display {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Demo Box Animations */
+        .demo-box {
+            background: #1e293b;
+            border: 2px dashed #334155;
+            border-radius: 12px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Specific Demo Animations */
+        @keyframes typing {
+            0% { content: "|"; }
+            50% { content: "A|"; }
+            100% { content: "AB|"; }
+        }
+        .demo-type::after { content: "⌨️"; animation: bounce 1s infinite; }
+        
+        @keyframes bounceRight {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
+        .demo-space { display: flex; gap: 20px; }
+        .demo-space span { background: #38bdf8; width: 40px; height: 10px; border-radius: 5px; }
+        
+        .demo-delete { color: #ef4444; text-decoration: line-through; }
+        .demo-enter { display: flex; flex-direction: column; align-items: center; color: #10b981; }
+        .demo-copy { animation: pulseCopy 1s infinite; color: #3b82f6; }
+        .demo-paste { color: #f59e0b; }
+        .demo-undo { transform: scaleX(-1); color: #8b5cf6; }
+        
+        @keyframes pulseCopy {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Animated background particles */
+        .particle {
+            position: absolute;
+            background: rgba(56, 189, 248, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatUp 3s linear infinite;
+        }
+        @keyframes floatUp {
+            from { transform: translateY(100vh) scale(0); opacity: 1; }
+            to { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body tabindex="0" class="h-screen w-screen flex flex-col items-center justify-start p-4 md:p-8">
+
+    <!-- Header -->
+    <div class="text-center mb-6 mt-2">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-1">
+            🔥 Keyboard Master 🥰
+        </h1>
+        <p class="text-gray-400 text-sm md:text-lg">दोस्त, कीबोर्ड का कोई भी बटन या शॉर्टकट (Ctrl+C आदि) दबाकर देखो!</p>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex flex-col md:flex-row gap-6 w-full max-w-5xl h-full pb-10">
+        
+        <!-- Left Side: Pressed Key Display -->
+        <div class="flex-1 bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-3xl p-6 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden">
+            <div class="absolute top-4 left-4 text-slate-500 text-sm">तुमने दबाया:</div>
+            
+            <div id="key-display" class="key-display text-5xl md:text-7xl font-bold text-white bg-slate-700/50 px-8 py-6 rounded-2xl border-b-4 border-cyan-500 shadow-lg min-w-[150px] text-center mb-4 transition-all">
+                ⌨️
+            </div>
+            
+            <div id="key-code" class="text-slate-400 text-sm font-mono mt-2 opacity-0">code: <span></span></div>
+        </div>
+
+        <!-- Right Side: Explanation & Demo -->
+        <div class="flex-[1.5] bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-3xl p-6 flex flex-col shadow-2xl">
+            <h2 class="text-2xl font-bold text-cyan-400 mb-2 border-b border-slate-700 pb-2 flex items-center gap-2">
+                <span>📚</span> इसका काम क्या है?
+            </h2>
+            
+            <p id="key-desc" class="text-lg md:text-2xl text-slate-200 mb-6 leading-relaxed flex-1">
+                यहाँ तुम्हें पता चलेगा कि तुमने जो बटन दबाया है, वो क्या काम करता है। कोई भी बटन दबाओ! 👇
+            </p>
+
+            <div class="mt-auto">
+                <h3 class="text-lg text-slate-400 mb-2">🎬 लाइव डेमो (Live Demo):</h3>
+                <div id="demo-area" class="demo-box text-4xl">
+                    <span class="animate-pulse">प्रतीक्षा कर रहा है... ⏳</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Instructions / Footer -->
+    <div class="fixed bottom-4 text-center w-full text-slate-500 text-xs md:text-sm px-4">
+        नोट: यह वेबपेज है, इसलिए कुछ सिस्टम शॉर्टकट (जैसे Alt+Tab) ब्राउज़र के बाहर काम कर सकते हैं।
+    </div>
+
+    <script>
+        // --- 📖 KNOWLEDGE BASE (हमारी देसी डिक्शनरी) ---
+        const keyData = {
+            // == Letters & Numbers ==
+            "ALPHABET": {
+                desc: "यह एक अक्षर (Alphabet) है। इसका इस्तेमाल नॉर्मल टाइपिंग, नाम लिखने या चैटिंग करने के लिए होता है। 📝",
+                demoHTML: `<div class="demo-type">⌨️ टाइपिंग चालू...</div>`
+            },
+            "NUMBER": {
+                desc: "यह एक नंबर है। गिनती, फोन नंबर या मैथ (Maths) के काम के लिए इस्तेमाल होता है। 🔢",
+                demoHTML: `<div>1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣</div>`
+            },
+            
+            // == Special Keys ==
+            "SPACE": {
+                desc: "इसे 'Spacebar' कहते हैं। यह दो शब्दों के बीच में खाली जगह (Space) छोड़ने के काम आता है। यह कीबोर्ड का सबसे बड़ा बटन होता है! 📏",
+                demoHTML: `<div class="demo-space"><span></span><span></span><span></span></div>`
+            },
+            "ENTER": {
+                desc: "यह 'Enter' बटन है। इसका काम है नई लाइन शुरू करना या किसी काम को 'OK' (Confirm) करना, जैसे WhatsApp पर मैसेज भेजना! 🚀",
+                demoHTML: `<div class="demo-enter"><span>मैसेज टाइप किया...</span><span>👇</span><span class="font-bold text-green-400">मैसेज सेंड (Send)! ✅</span></div>`
+            },
+            "BACKSPACE": {
+                desc: "'Backspace' बटन! अगर टाइपिंग में कोई गलती हो जाए, तो यह पीछे से अक्षरों को मिटाने (Delete) के काम आता है। 🔙",
+                demoHTML: `<div>H E L L <span class="demo-delete">O</span> ❌</div>`
+            },
+            "DELETE": {
+                desc: "'Delete' बटन। यह Backspace का उल्टा है, यह कर्सर के आगे वाले अक्षरों को मिटाता है। या फिर किसी फाइल/फोटो को डिलीट करने के काम आता है। 🗑️",
+                demoHTML: `<div><span class="text-red-500">🗑️ फाइल डिलीटेड!</span></div>`
+            },
+            "SHIFT": {
+                desc: "'Shift' बटन का अपना कोई काम नहीं, यह दूसरों की मदद करता है। इसे दबाकर कोई अक्षर दबाओगे तो वो बड़ा (CAPITAL) टाइप होगा। या बटनों के ऊपर वाले सिंबल (जैसे @, #) टाइप करने के काम आता है। ⬆️",
+                demoHTML: `<div>a ➡️ <span class="font-bold text-yellow-400 text-5xl">A</span></div>`
+            },
+            "CAPSLOCK": {
+                desc: "'Caps Lock' बटन। इसे एक बार चालू कर दो, तो सारे अक्षर अपने आप बड़े (CAPITAL LETTERS) टाइप होने लगेंगे। दोबारा दबाने पर बंद हो जाता है। 🔠",
+                demoHTML: `<div><span class="text-blue-400">a b c</span> ➡️ <span class="text-green-400 font-bold">A B C</span></div>`
+            },
+            "TAB": {
+                desc: "'Tab' बटन। यह एक साथ 4-5 स्पेस छोड़ने के काम आता है। या फिर किसी फॉर्म में एक बॉक्स से दूसरे बॉक्स में जल्दी जाने (Jump) के लिए इस्तेमाल होता है। ⏭️",
+                demoHTML: `<div>बॉक्स 1 ➡️ ➡️ बॉक्स 2</div>`
+            },
+            "ESCAPE": {
+                desc: "'Esc' (Escape) बटन। अगर कोई फुल-स्क्रीन वीडियो चल रहा है या कोई फालतू बॉक्स खुल गया है, तो उसे बंद करने या भागने के लिए इसका इस्तेमाल होता है! 🏃‍♂️💨",
+                demoHTML: `<div>❌ बाहर निकल गए (Exited)</div>`
+            },
+            "CONTROL": {
+                desc: "'Ctrl' (Control) बटन। यह अकेला कुछ नहीं करता। इसे दूसरे बटनों के साथ मिलाकर शॉर्टकट (Shortcuts) बनाए जाते हैं! ⚙️",
+                demoHTML: `<div>Ctrl + <span class="animate-pulse">?</span> = जादू ✨</div>`
+            },
+            "ALT": {
+                desc: "'Alt' (Alternate) बटन। यह भी Ctrl की तरह शॉर्टकट्स बनाने के काम आता है। 🔄",
+                demoHTML: `<div>Alt + <span class="animate-pulse">?</span></div>`
+            },
+            "META": {
+                desc: "इसे 'Windows' या 'Command' बटन कहते हैं। कंप्यूटर में स्टार्ट मेनू (Start Menu) खोलने या फोन में असिस्टेंट चालू करने के काम आता है। 🪟",
+                demoHTML: `<div>🪟 मेनू खुल रहा है...</div>`
+            },
+            "ARROW": {
+                desc: "ये 'Arrow Keys' हैं। इनका काम ऊपर (Up), नीचे (Down), दायें (Right) या बायें (Left) जाने के लिए होता है। गेम खेलने में भी बहुत काम आते हैं! 🎮",
+                demoHTML: `<div class="text-5xl">⬆️ ⬇️ ⬅️ ➡️</div>`
+            },
+
+            // == Magic Shortcuts ==
+            "CTRL+C": {
+                desc: "🔥 'Copy' (कॉपी): यह सबसे जादुई शॉर्टकट है! किसी भी टेक्स्ट, फोटो या फाइल को सेलेक्ट करके इसे दबाओ, वो कंप्यूटर के दिमाग में कॉपी हो जाएगा! 📝",
+                demoHTML: `<div class="demo-copy">📄 ➡️ 📄📄 (कॉपी हो गया!)</div>`
+            },
+            "CTRL+V": {
+                desc: "🔥 'Paste' (पेस्ट): जो चीज तुमने Ctrl+C से कॉपी की थी, उसे कहीं भी चिपकाने (Paste) के लिए इसका इस्तेमाल होता है! 📋",
+                demoHTML: `<div class="demo-paste">📋 यहाँ चिपका दिया! ✨</div>`
+            },
+            "CTRL+X": {
+                desc: "🔥 'Cut' (कट): यह कैंची ✂️ की तरह काम करता है। यह चीज को वहां से उठाकर दूसरी जगह ले जाने (Move) के लिए होता है।",
+                demoHTML: `<div>✂️ <span class="text-gray-500 line-through">पुराना</span> ➡️ <span class="text-green-400 font-bold">नया स्थान</span></div>`
+            },
+            "CTRL+Z": {
+                desc: "🔥 'Undo' (गलती सुधारना): अगर टाइप करते हुए या ड्राइंग करते हुए कोई गलती हो जाए, तो इसे दबाओ! यह समय में एक कदम पीछे (Time Travel) ले जाता है! ⏪",
+                demoHTML: `<div class="demo-undo text-5xl">↩️</div> <div class="text-lg mt-2">गलती मिट गई!</div>`
+            },
+            "CTRL+A": {
+                desc: "🔥 'Select All': अगर पूरे पेज का टेक्स्ट या सारे फोटो एक साथ सेलेक्ट करने हों, तो इसका इस्तेमाल करो! सब एक झटके में सेलेक्ट! 🟦",
+                demoHTML: `<div class="bg-blue-500/50 p-2 rounded">सब कुछ सेलेक्ट हो गया! ✅</div>`
+            },
+            "CTRL+S": {
+                desc: "🔥 'Save' (सेव): अपना काम सुरक्षित (Save) करने के लिए। ताकि लाइट जाने या ऐप बंद होने पर काम डिलीट ना हो जाए! 💾",
+                demoHTML: `<div>💾 फाइल सुरक्षित हो गई! 🔒</div>`
+            },
+            "CTRL+P": {
+                desc: "🔥 'Print' (प्रिंट): स्क्रीन पर जो भी है, उसे प्रिंटर से कागज़ पर छापने के लिए। 🖨️",
+                demoHTML: `<div>🖨️ प्रिंटिंग चालू... 📄</div>`
+            },
+            "ALT+TAB": {
+                desc: "🔥 'App Switcher': एक ऐप से दूसरे ऐप में फटाफट जाने (Switch) के लिए इसका इस्तेमाल होता है। प्रो-लोग इसे बहुत यूज़ करते हैं! 🔄",
+                demoHTML: `<div>📱 App 1 ➡️ 📱 App 2</div>`
+            },
+            
+            // Default Fallback
+            "UNKNOWN": {
+                desc: "अरे दोस्त! यह बटन तो कुछ नया है या इसका इस्तेमाल बहुत कम होता है। पर तुमने इसे भी खोज निकाला! 🕵️‍♂️",
+                demoHTML: `<div class="text-5xl">🤔❓</div>`
+            }
+        };
+
+        // DOM Elements
+        const keyDisplay = document.getElementById('key-display');
+        const keyCodeDisplay = document.getElementById('key-code');
+        const keyCodeSpan = keyCodeDisplay.querySelector('span');
+        const keyDesc = document.getElementById('key-desc');
+        const demoArea = document.getElementById('demo-area');
+
+        // Background Particles
+        function createParticles() {
+            for(let i=0; i<15; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.width = Math.random() * 20 + 10 + 'px';
+                p.style.height = p.style.width;
+                p.style.animationDuration = Math.random() * 3 + 2 + 's';
+                p.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // Prevent Default Actions for testing
+        const preventKeys = ['s', 'p', 'f', 'g']; // keys to prevent when Ctrl is pressed
+        
+        window.addEventListener('keydown', (e) => {
+            // Focus on body to keep OTG keyboard active without showing virtual keyboard
+            document.body.focus();
+
+            // Prevent annoying browser shortcuts (like Save page, Print page)
+            if (e.ctrlKey && preventKeys.includes(e.key.toLowerCase())) {
+                e.preventDefault(); 
+            }
+            if (e.key === 'Tab' || e.key === 'Alt' || e.key.startsWith('F')) {
+                e.preventDefault(); 
+            }
+
+            // 1. Determine Key Combination (Shortcut)
+            let comboName = '';
+            let isShortcut = false;
+
+            if (e.ctrlKey && e.key !== 'Control') { comboName += 'Ctrl+'; isShortcut = true; }
+            if (e.altKey && e.key !== 'Alt') { comboName += 'Alt+'; isShortcut = true; }
+            if (e.shiftKey && e.key !== 'Shift' && isShortcut) { comboName += 'Shift+'; }
+
+            // Handle Space bar specifically because e.key is " "
+            let mainKey = e.key === " " ? "Space" : e.key;
+            
+            // Clean up key name for display (e.g., lowercase 'c' to 'C')
+            if (mainKey.length === 1) mainKey = mainKey.toUpperCase();
+            
+            comboName += mainKey;
+
+            // 2. Update Key Display Box
+            keyDisplay.textContent = comboName;
+            
+            // Animation reset
+            keyDisplay.classList.remove('key-display');
+            void keyDisplay.offsetWidth; // trigger reflow
+            keyDisplay.classList.add('key-display');
+
+            keyCodeSpan.textContent = e.code;
+            keyCodeDisplay.classList.remove('opacity-0');
+
+            // 3. Find Description & Demo from Database
+            let lookupKey = "UNKNOWN";
+
+            if (isShortcut) {
+                lookupKey = comboName.toUpperCase();
+            } else {
+                let upperKey = mainKey.toUpperCase();
+                
+                // Match categories
+                if (/^[A-Z]$/.test(upperKey)) lookupKey = "ALPHABET";
+                else if (/^[0-9]$/.test(upperKey)) lookupKey = "NUMBER";
+                else if (upperKey === "SPACE") lookupKey = "SPACE";
+                else if (upperKey === "ENTER") lookupKey = "ENTER";
+                else if (upperKey === "BACKSPACE") lookupKey = "BACKSPACE";
+                else if (upperKey === "DELETE") lookupKey = "DELETE";
+                else if (upperKey === "SHIFT") lookupKey = "SHIFT";
+                else if (upperKey === "CAPSLOCK") lookupKey = "CAPSLOCK";
+                else if (upperKey === "TAB") lookupKey = "TAB";
+                else if (upperKey === "ESCAPE") lookupKey = "ESCAPE";
+                else if (upperKey === "CONTROL") lookupKey = "CONTROL";
+                else if (upperKey === "ALT") lookupKey = "ALT";
+                else if (upperKey === "META" || upperKey === "OS") lookupKey = "META";
+                else if (upperKey.includes("ARROW")) lookupKey = "ARROW";
+            }
+
+            // 4. Render Content
+            const info = keyData[lookupKey] || keyData["UNKNOWN"];
+            
+            // Typewriter effect for description for cool feel
+            keyDesc.innerHTML = '';
+            let i = 0;
+            const text = info.desc;
+            
+            keyDesc.innerHTML = text; // Just show it immediately for better UX on fast typing
+            demoArea.innerHTML = info.demoHTML;
+
+            // Add haptic feedback if supported by browser/device
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        });
+
+        // Click focus handler
+        document.addEventListener('click', () => {
+            document.body.focus();
+        });
+
+    </script>
+</body>
+</html>
+
