@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 Home Row Master Landscape 🥰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Baloo 2', cursive;
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+            touch-action: none;
+            /* Focus outline hide karne ke liye */
+            outline: none;
+        }
+
+        /* Landscape Mode Warning */
+        #portrait-warning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #2d3436;
+            color: white;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        @media screen and (orientation: portrait) {
+            #portrait-warning { display: flex; }
+            #game-wrapper { display: none !important; }
+        }
+
+        /* Game Area styling */
+        #game-area {
+            position: relative;
+            width: 100%;
+            height: 55vh;
+            overflow: hidden;
+            border-bottom: 5px dashed rgba(255,255,255,0.4);
+        }
+
+        .balloon {
+            position: absolute;
+            width: 60px;
+            height: 75px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            box-shadow: inset -5px -5px 0 rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+            transition: transform 0.1s;
+        }
+
+        .balloon::before {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 12px solid inherit;
+            z-index: -1;
+        }
+
+        .balloon::after {
+            content: "";
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 30px;
+            background-color: rgba(255,255,255,0.8);
+            z-index: -2;
+        }
+
+        .pop-effect {
+            transform: scale(1.5);
+            opacity: 0;
+            transition: all 0.2s ease-out;
+        }
+
+        /* Keyboard Guide Styling */
+        #keyboard-guide {
+            height: 45vh;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+
+        .key-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .key {
+            width: 40px;
+            height: 45px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2f3542;
+            box-shadow: 0 4px 0 #dfe4ea, 0 5px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .key.active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #dfe4ea;
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        /* Finger Guide Colors - Simple & Clean */
+        .left-hand { border-bottom: 4px solid #74b9ff; }
+        .right-hand { border-bottom: 4px solid #fdcb6e; }
+
+        @media (min-width: 640px) {
+            .key { width: 55px; height: 55px; font-size: 1.5rem; gap: 10px; }
+            .balloon { width: 70px; height: 85px; font-size: 2.5rem; }
+        }
+
+        /* Animation classes */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide { animation: slideIn 0.5s ease-out; }
+
+    </style>
+</head>
+<body tabindex="0"> <!-- tabindex=0 zaruri hai taaki body events catch kare bina keyboard khole -->
+
+    <!-- Portrait Mode Warning -->
+    <div id="portrait-warning">
+        <span class="text-7xl mb-4">🔄</span>
+        <h1 class="text-4xl font-bold text-yellow-400 mb-2">फोन को घुमाओ दोस्त!</h1>
+        <p class="text-xl px-6">यह गेम सिर्फ लैंडस्केप (Landscape) मोड में खेलने के लिए बना है ताकि तुम्हे कीबोर्ड अच्छे से दिखे। 🥰</p>
+    </div>
+
+    <!-- Main Game Wrapper -->
+    <div id="game-wrapper" class="w-full h-full flex flex-col relative">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="absolute inset-0 bg-black/70 z-50 flex flex-col items-center justify-center text-white backdrop-blur-sm animate-slide">
+            <h1 class="text-5xl md:text-6xl mb-2 text-center text-yellow-300 drop-shadow-md">Home Row Master 🔥</h1>
+            <p class="text-lg md:text-xl mb-6 text-center max-w-lg px-4 text-gray-200">
+                OTG कीबोर्ड लगा लिया? बस उंगलियां <b>A, S, D, F</b> और <b>J, K, L, ;</b> पर रखो। गुब्बारे पर लिखा अक्षर दबाओ!
+            </p>
+            <button id="start-btn" class="bg-gradient-to-r from-green-400 to-emerald-600 text-white font-bold py-3 px-10 rounded-full text-2xl shadow-[0_6px_0_#1e7145] active:translate-y-[6px] active:shadow-none transition-all">
+                खेल शुरू करें 🚀
+            </button>
+        </div>
+
+        <!-- HUD (Score & Lives) -->
+        <div class="absolute top-2 left-4 z-40 flex gap-4">
+            <div class="bg-white/90 px-4 py-1 rounded-xl shadow-md flex items-center gap-2 border-2 border-blue-200">
+                <span class="text-gray-600 font-bold">स्कोर:</span>
+                <span id="score-display" class="text-2xl text-blue-600 font-extrabold">0</span>
+            </div>
+            <div class="bg-white/90 px-4 py-1 rounded-xl shadow-md flex items-center gap-2 border-2 border-red-200">
+                <span class="text-red-500 text-xl">❤️</span>
+                <span id="lives-display" class="text-2xl text-red-600 font-extrabold">3</span>
+            </div>
+        </div>
+
+        <!-- Game Area (Balloons fly here) -->
+        <div id="game-area"></div>
+
+        <!-- Keyboard Guide -->
+        <div id="keyboard-guide">
+            <h2 class="text-gray-500 mb-1 text-sm md:text-base font-bold">👇 अपनी उंगलियां ऐसे रखो 👇</h2>
+            
+            <div class="key-row">
+                <!-- Left Hand -->
+                <div id="key-a" class="key left-hand">A</div>
+                <div id="key-s" class="key left-hand">S</div>
+                <div id="key-d" class="key left-hand">D</div>
+                <div id="key-f" class="key left-hand">F</div>
+                <div id="key-g" class="key left-hand">G</div>
+                
+                <div class="w-4"></div> <!-- Space between hands -->
+                
+                <!-- Right Hand -->
+                <div id="key-h" class="key right-hand">H</div>
+                <div id="key-j" class="key right-hand">J</div>
+                <div id="key-k" class="key right-hand">K</div>
+                <div id="key-l" class="key right-hand">L</div>
+                <div id="key-;" class="key right-hand">;</div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">नीला = बायां हाथ (Left) | पीला = दायां हाथ (Right)</p>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="hidden absolute inset-0 bg-red-900/80 z-50 flex flex-col items-center justify-center text-white backdrop-blur-sm">
+            <h1 class="text-5xl md:text-6xl mb-2 text-yellow-400">Game Over! 🥺</h1>
+            <p class="text-2xl mb-4">स्कोर: <span id="final-score" class="font-bold text-4xl text-green-400">0</span></p>
+            <button id="restart-btn" class="bg-white text-red-600 font-bold py-3 px-10 rounded-full text-xl shadow-[0_5px_0_#ccc] active:translate-y-[5px] active:shadow-none transition-all">
+                फिर से खेलें 🔄
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Game Settings
+        const homeRowKeys = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'];
+        const colors = ['#ff4757', '#1e90ff', '#2ed573', '#ffa502', '#9c88ff', '#e056fd'];
+        
+        let score = 0;
+        let lives = 3;
+        let isPlaying = false;
+        let baseSpeed = 1.0; // Very slow and easy for beginners
+        let spawnTime = 2500; // Time between new balloons
+        let balloons = [];
+        let lastTime = 0;
+        let timeSinceLastSpawn = 0;
+        let reqAnimationId;
+
+        // Elements
+        const gameArea = document.getElementById('game-area');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const scoreEl = document.getElementById('score-display');
+        const livesEl = document.getElementById('lives-display');
+
+        // Start Game Function
+        function initGame() {
+            score = 0;
+            lives = 3;
+            baseSpeed = 1.0; // Reset speed
+            spawnTime = 2500;
+            balloons.forEach(b => b.el.remove());
+            balloons = [];
+            
+            updateHUD();
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            
+            isPlaying = true;
+            lastTime = performance.now();
+            
+            // Focus body to ensure we catch keyboard events without opening mobile keyboard
+            document.body.focus(); 
+            
+            reqAnimationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Main Game Loop (Handles movement and spawning smoothly)
+        function gameLoop(currentTime) {
+            if (!isPlaying) return;
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            timeSinceLastSpawn += deltaTime;
+
+            // Spawn new balloon
+            if (timeSinceLastSpawn > spawnTime) {
+                spawnBalloon();
+                timeSinceLastSpawn = 0;
+                // Slightly increase difficulty over time, but keep it easy
+                if(spawnTime > 1200) spawnTime -= 20; 
+            }
+
+            // Move balloons Horizontally (Right to Left)
+            for (let i = balloons.length - 1; i >= 0; i--) {
+                let b = balloons[i];
+                // Move based on delta time for smooth performance on all screens
+                b.x -= b.speed * (deltaTime / 16); 
+                
+                b.el.style.transform = `translateX(${b.x}px)`;
+
+                // Missed balloon (went off screen left)
+                if (b.x < -80) {
+                    b.el.remove();
+                    balloons.splice(i, 1);
+                    loseLife();
+                }
+            }
+
+            reqAnimationId = requestAnimationFrame(gameLoop);
+        }
+
+        function spawnBalloon() {
+            const char = homeRowKeys[Math.floor(Math.random() * homeRowKeys.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            const div = document.createElement('div');
+            div.className = 'balloon';
+            div.textContent = char;
+            div.style.backgroundColor = color;
+            div.style.borderBottomColor = color;
+            
+            // Random Y position, but keep it inside game area
+            const maxTop = gameArea.clientHeight - 100;
+            const top = Math.max(10, Math.floor(Math.random() * maxTop));
+            div.style.top = top + 'px';
+            
+            // Start at the very right edge
+            let startX = gameArea.clientWidth;
+            div.style.transform = `translateX(${startX}px)`;
+            
+            gameArea.appendChild(div);
+            
+            balloons.push({
+                el: div,
+                char: char,
+                x: startX,
+                speed: baseSpeed + (Math.random() * 0.5) // Minor speed variation
+            });
+        }
+
+        // MAGIC TRICK: Window pe keydown listener lagaya hai, input field nahi diya.
+        // Isse mobile ka touch keyboard kabhi open nahi hoga! 🥰
+        window.addEventListener('keydown', (e) => {
+            if (!isPlaying) return;
+            
+            let key = e.key.toLowerCase();
+            if(e.key === ':' && !e.shiftKey) key = ';'; 
+
+            if (!homeRowKeys.includes(key)) return;
+
+            // Keyboard Guide Animation
+            const keyElement = document.getElementById(`key-${key}`);
+            if (keyElement) {
+                keyElement.classList.add('active');
+                setTimeout(() => keyElement.classList.remove('active'), 150);
+            }
+
+            // Find matching balloon
+            const targetIndex = balloons.findIndex(b => b.char === key);
+            
+            if (targetIndex !== -1) {
+                const target = balloons[targetIndex];
+                const rect = target.el.getBoundingClientRect();
+                
+                // Confetti blast! 🎉
+                confetti({
+                    particleCount: 25,
+                    spread: 50,
+                    origin: { 
+                        x: (rect.left + rect.width/2) / window.innerWidth, 
+                        y: (rect.top + rect.height/2) / window.innerHeight 
+                    },
+                    colors: [target.el.style.backgroundColor, '#fff']
+                });
+
+                // Pop effect and remove
+                target.el.classList.add('pop-effect');
+                const elToRemove = target.el;
+                balloons.splice(targetIndex, 1);
+                
+                setTimeout(() => elToRemove.remove(), 200);
+
+                // Update Score
+                score += 10;
+                updateHUD();
+
+                // Make it slightly faster every 100 points
+                if(score > 0 && score % 100 === 0) {
+                    baseSpeed += 0.2;
+                }
+            } else {
+                // Wrong key visual feedback
+                gameArea.style.backgroundColor = 'rgba(255,0,0,0.1)';
+                setTimeout(() => gameArea.style.backgroundColor = 'transparent', 100);
+            }
+        });
+
+        function loseLife() {
+            lives--;
+            updateHUD();
+            
+            // Screen Shake
+            document.body.style.transform = 'translate(5px, 0)';
+            setTimeout(() => document.body.style.transform = 'translate(-5px, 0)', 50);
+            setTimeout(() => document.body.style.transform = 'translate(0, 0)', 100);
+
+            if (lives <= 0) {
+                isPlaying = false;
+                cancelAnimationFrame(reqAnimationId);
+                document.getElementById('final-score').textContent = score;
+                gameOverScreen.classList.remove('hidden');
+            }
+        }
+
+        function updateHUD() {
+            scoreEl.textContent = score;
+            livesEl.textContent = lives;
+        }
+
+        // Button Listeners
+        document.getElementById('start-btn').addEventListener('click', initGame);
+        document.getElementById('restart-btn').addEventListener('click', initGame);
+
+    </script>
+</body>
+</html>
+
